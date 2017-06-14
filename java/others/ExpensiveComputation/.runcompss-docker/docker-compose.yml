@@ -1,0 +1,84 @@
+version: '2'
+
+networks:
+  runcompss-docker-net:
+    driver: overlay
+
+services:
+
+  worker1:
+    image: compssbase
+
+    expose:
+      - "43000-43200"
+      - "22"
+      - "7"
+
+    command: /bin/bash -c "/usr/sbin/sshd -D "
+
+    mem_limit: 8g
+    cpu_shares: 4
+
+    networks:
+      - runcompss-docker-net
+
+  worker2:
+    image: compssbase
+
+    expose:
+      - "43000-43200"
+      - "22"
+      - "7"
+
+    command: /bin/bash -c "/usr/sbin/sshd -D "
+
+    mem_limit: 8g
+    cpu_shares: 4
+
+    networks:
+      - runcompss-docker-net
+
+  worker3:
+    image: compssbase
+
+    expose:
+      - "43000-43200"
+      - "22"
+      - "7"
+
+    command: /bin/bash -c "/usr/sbin/sshd -D "
+
+    mem_limit: 8g
+    cpu_shares: 4
+
+    networks:
+      - runcompss-docker-net
+
+  worker4:
+    image: compssbase
+
+    expose:
+      - "43000-43200"
+      - "22"
+      - "7"
+
+    command: /bin/bash -c "/usr/sbin/sshd -D "
+
+    mem_limit: 8g
+    cpu_shares: 4
+
+    networks:
+      - runcompss-docker-net
+
+  master:
+
+    image: compssbase
+
+    expose:
+      - "43000-43200"
+
+    command: /bin/bash -c ' /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-resources-xml 4 4 8 10.193.157.7:2377 compssbase 60 > /home/lucasmsp/workspace/BigSea/Compss-examples/ExpensiveComputation/target/resources.xml ;  /opt/COMPSs/Runtime/scripts/system/docker/generators/generate-project-xml 4 compssbase 0 4 > /home/lucasmsp/workspace/BigSea/Compss-examples/ExpensiveComputation/target/project.xml ;  cd "/home/lucasmsp/workspace/BigSea/Compss-examples/ExpensiveComputation/target"; sleep 5 ; /opt/COMPSs/Runtime/scripts/user/runcompss  --project="/home/lucasmsp/workspace/BigSea/Compss-examples/ExpensiveComputation/target/project.xml"   --resources="/home/lucasmsp/workspace/BigSea/Compss-examples/ExpensiveComputation/target/resources.xml" --classpath=/home/lucasmsp/workspace/BigSea/Compss-examples/ExpensiveComputation/target/CE.jar -d ExpensiveComputation.ExpensiveComputation ;  ssh -o StrictHostKeyChecking=no worker1 "pkill sshd" ; ssh -o StrictHostKeyChecking=no worker2 "pkill sshd" ; ssh -o StrictHostKeyChecking=no worker3 "pkill sshd" ; ssh -o StrictHostKeyChecking=no worker4 "pkill sshd" ;'
+
+    networks:
+      - runcompss-docker-net
+
