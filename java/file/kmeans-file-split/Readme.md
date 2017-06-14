@@ -25,7 +25,7 @@ After the initialization, the algorithm goes through a set of iterations. In eve
 
 Usage:
 
-```$ runcompss kmeans.files.KMeans -c <num_clusters> -i <maxIter>  -d <num_dim> -f  <num_frag> -t <train_datafile> -n <size_train>```
+```$ runcompss files.KMeans -c <num_clusters> -i <maxIter>  -d <num_dim> -f  <num_frag> -t <train_datafile> -n <size_train>```
 
 
 
