@@ -9,6 +9,12 @@ Remember that you might need to compile the library functions_knn.pyx first:
 
 ## Example of usage:
 	
-```$runcompss --log_level=info -g --summary --lang=python	/home/lucasmsp/workspace/BigSea/compss-library/python/knn/test.py -f 4 -k 1 	-t /home/lucasmsp/workspace/BigSea/compss-library/python/knn/input1.csv -v /home/lucasmsp/workspace/BigSea/compss-library/python/knn/input2.csv```
+```
+$ runcompss --log_level=info -g --summary --lang=python	\
+			/home/lucasmsp/workspace/BigSea/compss-library/python/knn/test.py \
+			-f 4 -k 1 	\
+			-t /home/lucasmsp/workspace/BigSea/compss-library/python/knn/input1.csv \
+			-v /home/lucasmsp/workspace/BigSea/compss-library/python/knn/input2.csv
+```
 
 
