@@ -48,7 +48,6 @@ public class WordCount {
 			HashMap<String, Integer> partialResult = map(b);
 			result = mergeResults(partialResult, result);
 		}
-		System.out.println("[LOG] Result size = " + result.keySet().size());
 
 		System.out.println("[LOG] Result size = " + result.keySet().size());
 		if (list){
