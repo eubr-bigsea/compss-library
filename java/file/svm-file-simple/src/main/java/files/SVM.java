@@ -260,11 +260,11 @@ public class SVM {
                 }
             }
 
-            System.out.println("[INFO] - Current Cost: "+ COST[0][0]);
-            if(COST[0][0]< threshold){
-                System.out.println("[INFO] - Final Cost: "+ COST[0][0]);
-                break;
-            }
+           // System.out.println("[INFO] - Current Cost: "+ COST[0][0]);
+           // if(COST[0][0]< threshold){
+          //      System.out.println("[INFO] - Final Cost: "+ COST[0][0]);
+         //       break;
+          //  }
 
             //Step:Update
             updateWeight(lr,grad_p[0],w);

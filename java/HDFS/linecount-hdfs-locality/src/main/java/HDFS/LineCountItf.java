@@ -1,9 +1,11 @@
 package HDFS;
 
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.task.Method;
-import integration.Block;
 
+import integration.BlockLocality;
 
 
 /**
@@ -14,7 +16,7 @@ public interface LineCountItf {
 
     @Method(declaringClass ="HDFS.LineCount")
     int[]  LineCount(
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) Block b1
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) BlockLocality b1
     );
 
 }

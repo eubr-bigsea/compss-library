@@ -11,27 +11,29 @@ package knn;
  */
 
 
-import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.task.Method;
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Type;
 
 
 public interface KnnItf {
 
     @Method(declaringClass = "knn.Knn")
     int[] ClassifyBlock(
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) double[][] test_features,
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) int[] train_labels,
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) double[][] train_features,
-            @Parameter(direction = Parameter.Direction.IN) int K,
-            @Parameter(direction = Parameter.Direction.IN) int sizeTestPerFrag
+            @Parameter(type =  Type.OBJECT, direction =  Direction.IN) double[][] test_features,
+            @Parameter(type =  Type.OBJECT, direction =  Direction.IN) int[] train_labels,
+            @Parameter(type =  Type.OBJECT, direction =  Direction.IN) double[][] train_features,
+            @Parameter(direction =  Direction.IN) int K,
+            @Parameter(direction =  Direction.IN) int sizeTestPerFrag
     );
 
 
     @Method(declaringClass = "knn.Knn")
     void savePredictionToFile(
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN)
+            @Parameter(type =  Type.OBJECT, direction =  Direction.IN)
                     int[] result,
-            @Parameter(type = Parameter.Type.FILE, direction = Parameter.Direction.INOUT)
+            @Parameter(type =  Type.FILE, direction =  Direction.INOUT)
                     String filename
     );
 

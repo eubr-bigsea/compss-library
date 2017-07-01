@@ -178,8 +178,8 @@ public class Knn {
 
         for (int s=0; s<sizeTestPerFrag;s++) { //TROCAR DEPOIS POR STREAM
 
-            if(s% 1000 == 0)
-                printPoints(test_features[s]);
+          //  if(s% 1000 == 0)
+           //     printPoints(test_features[s]);
 
             double tmp_dist  = 0;
             int    tmp_label = 0;

@@ -1,11 +1,10 @@
-package files;;
+package files;
 
 
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Type;
 import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Parameter.Direction;
-import integratedtoolkit.types.annotations.Parameter.Type;
 import integratedtoolkit.types.annotations.task.Method;
-
 
 import java.util.HashMap;
 

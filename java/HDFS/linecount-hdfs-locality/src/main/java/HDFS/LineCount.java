@@ -2,6 +2,7 @@ package HDFS;
 
 import integration.Block;
 
+import integration.BlockLocality;
 import storage.StorageException;
 import storage.StorageItf;
 
@@ -20,7 +21,7 @@ public class LineCount {
 
         public static void main(String args[]) throws StorageException {
 
-            ArrayList<Block> FILE_SPLITS  = storage.getBlocks(0);
+            ArrayList<BlockLocality> FILE_SPLITS  = storage.getBlocks(0);
             int numFrag = FILE_SPLITS.size();
 
             System.out.println("Running HDFS.LineCount with the following parameters:");
@@ -31,7 +32,7 @@ public class LineCount {
             int[][] result = new  int[numFrag][2];
             System.out.println("[INFO] Computing result");
             int i = 0;
-            for (Block b : FILE_SPLITS){
+            for (BlockLocality b : FILE_SPLITS){
                 result[i]  = LineCount(b);
                 i++;
             }
@@ -41,30 +42,29 @@ public class LineCount {
             for (i = 0; i < result.length; ++i) {
                 count += result[i][0];
             }
-            System.out.println("[INFO] Result size 1 = " + count);
+            System.out.println("[INFO] Result size  = " + count);
 
 
-
-            ArrayList<Block> FILE_SPLITS2 = storage.getBlocks(1);
-            int numFrag2 = FILE_SPLITS2.size();
-            System.out.println("[INFO] - Num Frag 2 " + numFrag2);
-            int[][] result2 = new  int[numFrag2][2];
-            System.out.println("[INFO] Computing result");
-            i = 0;
-            for (Block b : FILE_SPLITS2){
-                result2[i]  = LineCount(b);
-                i++;
-            }
-            int count2 = 0;
-            for (i = 0; i < result2.length; ++i) {
-
-                count2+=result2[i][0];
-            }
-            System.out.println("[INFO] Result size 2 = " + count2);
+//            ArrayList<BlockLocality> FILE_SPLITS2 = storage.getBlocks(1);
+//            int numFrag2 = FILE_SPLITS2.size();
+//            System.out.println("[INFO] - Num Frag 2 " + numFrag2);
+//            int[][] result2 = new  int[numFrag2][2];
+//            System.out.println("[INFO] Computing result");
+//            i = 0;
+//            for (Block b : FILE_SPLITS2){
+//                result2[i]  = LineCount(b);
+//                i++;
+//            }
+//            int count2 = 0;
+//            for (i = 0; i < result2.length; ++i) {
+//
+//                count2+=result2[i][0];
+//            }
+//            System.out.println("[INFO] Result size 2 = " + count2);
         }
 
 
-        public static int[]  LineCount(Block b1) {
+        public static int[]  LineCount(BlockLocality b1) {
             java.net.InetAddress localMachine = null;
             try {
                 localMachine = java.net.InetAddress.getLocalHost();

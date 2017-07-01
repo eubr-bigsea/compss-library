@@ -116,30 +116,36 @@ public class Knn {
                                        Block b1, int K, int numDim){
         long startTime = System.nanoTime();
 
-        String[] tokens;
+
         b1 = (Block) b1.clone();
-        String[] lines = b1.getRecords();
-        b1.closeBlock();
+        String[] tokens;
 
-        int   [] test_labels    = new     int[lines.length];
-        double[][]test_features  = new double[lines.length][numDim];
-        int [][] semi_labels = new int[lines.length][K+1];
+        ArrayList<Integer> test_labels = new ArrayList<Integer>();
+        ArrayList<double[]> test_features = new ArrayList<double[]>();
 
-        for (int l = 0; l<lines.length;l++) {
-            tokens = lines[l].split(",");
-            test_labels[l] = (int) Float.parseFloat(tokens[0]);
+
+        while (b1.HasRecords()) {
+            tokens =  b1.getRecord().split(",");
+            test_labels.add((int) Float.parseFloat(tokens[0]));
+            double [] t = new double[numDim];
             for (int i = 1; i < tokens.length; i++)
-                test_features[l][i - 1] = Double.parseDouble(tokens[i]);
+                t[i - 1] = Double.parseDouble(tokens[i]);
+
+            test_features.add(t);
         }
+        b1.closeBlock();
+        int n_lines = test_labels.size();
 
-        double  [][] semi_features    = new double[lines.length][K+1];
+        int [][] semi_labels = new int[n_lines][K+1];
 
-        System.out.println("[INFO] - Readed "+lines.length+" records");
+        double  [][] semi_features    = new double[n_lines][K+1];
+
+        System.out.println("[INFO] - Readed "+n_lines+" records");
         long estimatedTime0 = System.nanoTime() - startTime;
         double seconds0 = (double) estimatedTime0 / 1000000000.0;
         System.out.printf("[INFO] - Readed Training file -> Time elapsed: %.2f seconds\n",seconds0);
 
-        for (int s=0; s<test_labels.length;s++) {
+        for (int s=0; s<n_lines;s++) {
 
             double tmp_dist  = 0;
             int    tmp_label = 0;
@@ -151,7 +157,7 @@ public class Knn {
             }
 
             for (int s2 = 0; s2<train_features.length;s2++) {
-                semi_features[s][K] = distance(train_features[s2], test_features[s]);
+                semi_features[s][K] = distance(train_features[s2], test_features.get(s));
                 semi_labels  [s][K] = train_labels[s2];
 
                 for (int j=K; j>0;j--){ //Insert Sort  - OK
@@ -221,7 +227,7 @@ public class Knn {
 
         //HDFS part
         HDFS dfs =  new HDFS(defaultFS);
-        ArrayList<Block> FILE_TRAIN_SPLITS = dfs.findALLBlocks(trainingSet_name);;
+        ArrayList<Block> FILE_TRAIN_SPLITS = dfs.findBlocksByRecords(trainingSet_name,1);
         ArrayList<Block> FILE_TEST_SPLITS;
         if (force_split) {
             FILE_TEST_SPLITS  = dfs.findBlocksByRecords(validationSet_name, numFrags);

@@ -13,6 +13,7 @@ package HDFS;
 
 
 import integration.Block;
+import integration.BlockLocality;
 import integration.HDFS;
 import storage.StorageException;
 import storage.StorageItf;
@@ -67,7 +68,7 @@ public class SVMHDFS {
     }
 
 
-    public static Sample loadfileFromHDFS(Block blk,  int numDim) {
+    public static Sample loadfileFromHDFS(BlockLocality blk,  int numDim) {
 
         long startTime = System.nanoTime();
 
@@ -241,8 +242,8 @@ public class SVMHDFS {
 
         //Finding the list of blocks
 
-        ArrayList<Block> FILE_TRAIN_SPLITS = null;
-        ArrayList<Block> FILE_TEST_SPLITS = null;
+        ArrayList<BlockLocality> FILE_TRAIN_SPLITS = null;
+        ArrayList<BlockLocality> FILE_TEST_SPLITS = null;
         try {
             FILE_TRAIN_SPLITS = storage.getBlocks(0);
             FILE_TEST_SPLITS  = storage.getBlocks(1);
@@ -294,11 +295,11 @@ public class SVMHDFS {
 
 
 
-            System.out.println("[INFO] - Current Cost: "+ COST[0][0]);
-            if(COST[0][0]< threshold){
-                System.out.println("[INFO] - Final Cost: "+ COST[0][0]);
-                break;
-            }
+          //  System.out.println("[INFO] - Current Cost: "+ COST[0][0]);
+          //  if(COST[0][0]< threshold){
+          //      System.out.println("[INFO] - Final Cost: "+ COST[0][0]);
+           //     break;
+           // }
 
             //Step:Update
             updateWeight(lr,grad_p[0],w);
@@ -310,7 +311,7 @@ public class SVMHDFS {
                 #### Test Model ####
 
          ########################################*/
-        String defaultFS = "hdfs://localhost:9000";  //GET DEPOIS
+        String defaultFS = System.getenv("MASTER_HADOOP_URL");
         Sample[] test  = new Sample[numFrag2];
 
         for(int f=0; f<numFrag2;f++){

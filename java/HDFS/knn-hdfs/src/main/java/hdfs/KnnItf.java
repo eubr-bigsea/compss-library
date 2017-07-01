@@ -1,7 +1,11 @@
 package hdfs;
 
-import integratedtoolkit.types.annotations.Parameter;
 import integratedtoolkit.types.annotations.task.Method;
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Type;
+
+
 import integration.Block;
 
 /**
@@ -18,18 +22,18 @@ public interface KnnItf {
 
     @Method(declaringClass = "hdfs.Knn")
     int[] ClassifyBlock(
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) int[] train_labels,
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) double[][] train_features,
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) Block b1,
-            @Parameter(direction = Parameter.Direction.IN) int K,
-            @Parameter(direction = Parameter.Direction.IN) int numDim
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) int[] train_labels,
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) double[][] train_features,
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) Block b1,
+            @Parameter(direction = Direction.IN) int K,
+            @Parameter(direction = Direction.IN) int numDim
     );
 
     @Method(declaringClass = "hdfs.Knn")
     void savePredictionToHDFS(
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) int[] result,
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) String defaultFS,
-            @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN) String filename
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) int[] result,
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) String defaultFS,
+            @Parameter(type = Type.OBJECT, direction = Direction.IN) String filename
     );
 
 }

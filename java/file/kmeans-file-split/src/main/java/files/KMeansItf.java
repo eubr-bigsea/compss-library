@@ -16,28 +16,27 @@
 package files;
 
 
-import integratedtoolkit.types.annotations.Parameter;
-import integratedtoolkit.types.annotations.Parameter.Direction;
 import integratedtoolkit.types.annotations.task.Method;
-
-
+import integratedtoolkit.types.annotations.Parameter;
+import integratedtoolkit.types.annotations.parameter.Direction;
+import integratedtoolkit.types.annotations.parameter.Type;
 public interface KMeansItf {
 
 
 	@Method(declaringClass = "files.KMeans")
 	float[] readPointsFromFile(
-			@Parameter(type = Parameter.Type.FILE, direction = Parameter.Direction.IN) String fileName,
-			@Parameter(type = Parameter.Type.OBJECT,direction = Parameter.Direction.INOUT) float[] points,
-			@Parameter(direction = Parameter.Direction.IN) int numPoints,
-			@Parameter(direction = Parameter.Direction.IN) int numDimensions,
-			@Parameter(type = Parameter.Type.OBJECT,direction = Parameter.Direction.INOUT)  float[] cluster,
-			@Parameter(direction = Parameter.Direction.IN) int K
+			@Parameter(type =  Type.FILE, direction =  Direction.IN) String fileName,
+			@Parameter(type =  Type.OBJECT,direction =  Direction.INOUT) float[] points,
+			@Parameter(direction =  Direction.IN) int numPoints,
+			@Parameter(direction =  Direction.IN) int numDimensions,
+			@Parameter(type =  Type.OBJECT,direction =  Direction.INOUT)  float[] cluster,
+			@Parameter(direction =  Direction.IN) int K
 			);
 
 	@Method(declaringClass = "files.KMeans")
-	void initilizeClusters(@Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.INOUT) float[] cluster,
-						   @Parameter(type = Parameter.Type.OBJECT, direction = Parameter.Direction.IN)    float[] data,
-						   @Parameter(direction = Parameter.Direction.IN) int startPos
+	void initilizeClusters(@Parameter(type =  Type.OBJECT, direction =  Direction.INOUT) float[] cluster,
+						   @Parameter(type =  Type.OBJECT, direction =  Direction.IN)    float[] data,
+						   @Parameter(direction =  Direction.IN) int startPos
 	);
 
 	@Method(declaringClass = "files.KMeans")
@@ -50,9 +49,9 @@ public interface KMeansItf {
 					float[] points,
 			@Parameter
 					float[] clusterPoints,
-			@Parameter(type = Parameter.Type.OBJECT,direction = Direction.INOUT)
+			@Parameter(type =  Type.OBJECT,direction = Direction.INOUT)
 					float[] newClusterPoints,
-			@Parameter(type = Parameter.Type.OBJECT,direction = Direction.INOUT)
+			@Parameter(type =  Type.OBJECT,direction = Direction.INOUT)
 					int[] clusterCounts
 	);
 
