@@ -205,10 +205,10 @@ public class KMeans {
             // by the number of points in the cluster
         	localReduction(newClusters[0], clusterCounts[0], K, nDimensions, data.currentCluster);
 
-            if(compareArrays(bkp_clusters,data.currentCluster) && iter!=0){
-              System.out.println("Iterations:"+ iter);
-              break;
-            }
+//            if(compareArrays(bkp_clusters,data.currentCluster) && iter!=0){
+//              System.out.println("Iterations:"+ iter);
+//              break;
+//            }
 
 
         }
