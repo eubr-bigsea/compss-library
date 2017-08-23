@@ -49,16 +49,18 @@ class KNN(object):
                                 if you don't want to write the output in a file.
             :return A list of labels predicted.
         """
-        labels   = settings['labels']
+        label    = settings['label']
         features = settings['features']
-        columns  = labels+features
+        predictedLabel = settings['new_name'] if 'new_name' in settings else "{}_predited".format(label)
+        columns  = label+features
         K = int(settings['K'])
 
 
         result = [ self.classifyBlock(  test_data[i],
                                         train_data,
                                         features,
-                                        labels,
+                                        label,
+                                        predictedLabel,
                                         K)  for i in range(numFrag) ]
 
 
@@ -77,12 +79,16 @@ class KNN(object):
         return result
 
     @task(returns=list, isModifier = False)
-    def classifyBlock(self,data,train_data, features, label,K):
+    def classifyBlock(self,data,train_data, features, label,predictedLabel,K):
 
         start=time.time()
 
         #initalizing variables
-        numDim = len(features)
+        if isinstance(data.iloc[0][features], list):
+            numDim = len(data.iloc[0][features])
+        else:
+            numDim = 1
+        print numDim
         sizeTest    = len(data)
         sizeTrain   = len(train_data)
         semi_labels = np.zeros((sizeTest, K+1))
@@ -91,11 +97,11 @@ class KNN(object):
 
         for i_test in range(sizeTest):
             for i_train in range(sizeTrain):
-
-                semi_dist[i_test][K] = functions_knn.distance(
-                                train_data.iloc[i_train][features].values.astype(np.float_),
-                                data.iloc[i_test][features].values.astype(np.float_), numDim)
-                semi_labels[i_test][K] = train_data.iloc[i_train][label].values
+                semi_dist[i_test][K] =  functions_knn.distance(
+                                np.array(train_data.iloc[i_train][features]),
+                                np.array(data.iloc[i_test][features]),
+                                numDim )
+                semi_labels[i_test][K] = train_data.iloc[i_train][label]
 
                 j=K
                 while(j>0):
@@ -111,8 +117,8 @@ class KNN(object):
 
 
         values= self.getKNN(semi_labels,K)
-        new_column = "_".join(i for i in label) +"_predited"
-        data[new_column] =  pd.Series(values).values
+
+        data[predictedLabel] =  pd.Series(values).values
 
 
         end = time.time()
@@ -122,7 +128,7 @@ class KNN(object):
 
     @task(returns=list, isModifier = False)
     def merge_lists(self,list1,list2):
-        print "\nmerge_lists\n---\n{}\n---\n{}\n---\n".format(list1,list2)
+        #print "\nmerge_lists\n---\n{}\n---\n{}\n---\n".format(list1,list2)
 
         if len(list1) == 0:
             result = list2

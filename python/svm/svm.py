@@ -12,14 +12,14 @@ from pycompss.api.parameter import *
 from pycompss.functions.reduce import mergeReduce
 from pycompss.functions.data import chunks
 from pycompss.api.api import compss_wait_on
-
+import pandas as pd
 import numpy as np
 
 #-------------------------
 #   Training
 #
 class SVM(object):
-
+    #OBS.: Senao for usar o COST, tem como otimizar o codigo
     def fit(self,data, settings, numFrag):
 
         """
@@ -55,51 +55,65 @@ class SVM(object):
         coef_threshold  = float(settings['coef_threshold'])
         coef_maxIters   =   int(settings['coef_maxIters'])
 
-        label    = settings['labels']
+        label    = settings['label']
         features = settings['features']
-        numDim = len(settings['features'])
-        w = [0 for i in range(numDim)]
+        w = [0 for i in range(1)] #initial
 
         for it in range(coef_maxIters):
-            cost_grad_p = [self.calc_CostAndGrad(data[f], f, numDim,
-                                                 coef_lambda, w,label,features)
+            cost_grad_p = [self.calc_CostAndGrad(data[f], f, coef_lambda,
+                                                 w,label,features)
                                                  for f in range(numFrag)]
-            cost_grad   = [ mergeReduce(self.accumulate_CostAndGrad, cost_grad_p) ]
-            cost_grad   =  compss_wait_on(cost_grad)
+            cost_grad   =  mergeReduce(self.accumulate_CostAndGrad, cost_grad_p)
+            #cost_grad   =  compss_wait_on(cost_grad)
 
-            grad = cost_grad[0][1]
-            cost = cost_grad[0][0][0]
-            print "[INFO] - Current Cost %.4f" % (cost)
-            if cost < coef_threshold:
-                print "[INFO] - Cost %.4f" % (cost)
-                break
+            #grad = cost_grad[0][1]
+            #cost = cost_grad[0][0][0]
+            #print "[INFO] - Current Cost %.4f" % (cost)
+            #if cost < coef_threshold:
+            #    print "[INFO] - Cost %.4f" % (cost)
+            #    break
 
-            w = self.updateWeight(coef_lr,grad,w)
+            w = self.updateWeight(coef_lr,cost_grad,w)
 
         return w
 
     @task(returns=list, isModifier = False)
     def updateWeight(self,coef_lr,grad,w):
+        dim = len(grad[1])
+        if(dim!=len(w)):
+            w = [0 for i in range(dim)]
+
         for i in xrange(len(w)):
-            w[i] -=coef_lr*grad[i]
+            w[i] -=coef_lr*grad[1][i]
         return w
 
-    @task(returns=list, isModifier = False)
-    def calc_CostAndGrad(self,train_data,f,numDim,coef_lambda,w,label,features):
+    def get_dimension(self,row):
+        if isinstance(row, list):
+            numDim = len(row)
+        else:
+            numDim = 1
+        return numDim
 
-        #train_data = self.format_TrainData(data,label,features)
+
+    @task(returns=list, isModifier = False)
+    def calc_CostAndGrad(self,train_data,f,coef_lambda,w,label,features):
+        numDim = self.get_dimension(data.iloc[0][X])
+
         ypp   = [0 for i in range(len(train_data))]
         cost  = [0,0]
         grad  = [0 for i in range(numDim)]
+
+        if numDim != len(w):
+            w = [0 for i in range(numDim)] #initial
 
         if (len(train_data)):
             for i in range(len(train_data)):
                 ypp[i]=0
                 for d in xrange(0,numDim):
-                    ypp[i]+=train_data.iloc[i][features].values[d]*w[d]
+                    ypp[i]+=train_data.iloc[i][features][d]*w[d]
 
-                if (train_data.iloc[i][label].values * ypp[i] -1) < 0:
-                    cost[0]+=(1 - train_data.iloc[i][label].values * ypp[i])
+                if (train_data.iloc[i][label] * ypp[i] -1) < 0:
+                    cost[0]+=(1 - train_data.iloc[i][label] * ypp[i])
 
 
             for d in range(numDim):
@@ -108,8 +122,8 @@ class SVM(object):
                     grad[d]+=abs(coef_lambda * w[d])
 
                 for i in range(len(train_data)):
-                    if (train_data.iloc[i][label].values*ypp[i]-1) < 0:
-                        grad[d] -= train_data.iloc[i][label].values*train_data.iloc[i][features].values[d]
+                    if (train_data.iloc[i][label]*ypp[i]-1) < 0:
+                        grad[d] -= train_data.iloc[i][label]*train_data.iloc[i][features][d]
 
         return [cost,grad]
 
@@ -153,28 +167,24 @@ class SVM(object):
             :return: A list with the labels
         """
 
-        error = 0
-        values = []
         w = settings['model']
         features = settings['features']
-        label = "_".join(i for i in settings['labels'])
+        predictedLabel = settings['new_name'] if 'new_name' in settings else "{}_predited".format(label)
 
-        result_p   = [ self.predict_partial(data[f],w,label,features)  for f in range(numFrag) ]
+        result_p   = [ self.predict_partial(data[f],w,predictedLabel,features)  for f in range(numFrag) ]
 
         return result_p
 
 
     @task(returns=list, isModifier = False)
-    def predict_partial(self,data,w,label,features):
-        import pandas as pd
+    def predict_partial(self,data,w,predictedLabel,features):
+
         if len(data)>0:
             values = [0 for i in range(len(data))]
-            new_column = label +"_predited"
-
             for i in range(len(data)):
-                values[i] = self.predict_one(data.iloc[i][features].values,w)
+                values[i] = self.predict_one(data.iloc[i][features],w)
 
-            data[new_column] =  pd.Series(values).values
+            data[predictedLabel] =  pd.Series(values).values
 
             return data
         else:

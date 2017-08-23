@@ -4,19 +4,10 @@
 __author__ = "Lucas Miguel S Ponce"
 __email__  = "lucasmsp@gmail.com"
 
-
-
 import sys
 
-from knn import *
-
-import time
-import numpy as np
 import pandas as pd
-
-
-
-
+from naivebayes import *
 
 def FeatureAssemble(df, cols, name):
     """
@@ -41,7 +32,6 @@ def FeatureAssemble(df, cols, name):
 @task(returns=list)
 def FeatureAssemble_parallel(df,cols,name):
     df[name] =  df[cols].values.tolist()
-    print df
     return df
 
 def ReadParallelFile(filename,separator,header,infer,na_values):
@@ -126,51 +116,51 @@ def SaveToFile(filename,data,mode,header):
     return None
 
 
-
-
-
-
 if __name__ == "__main__":
+
     import argparse
-    parser = argparse.ArgumentParser(description='KNN PyCOMPSs')
+    parser = argparse.ArgumentParser(description='Gaussian Naive Bayes PyCOMPSs')
     parser.add_argument('-t', '--TrainSet', required=True, help='path to the train file')
     parser.add_argument('-v', '--TestSet',  required=True, help='path to the test file')
     parser.add_argument('-f', '--Nodes',    type=int,  default=2, required=False, help='Number of nodes')
-    parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of nearest neighborhood')
     parser.add_argument('-o', '--output',   required=False, help='path to the output file')
     arg = vars(parser.parse_args())
 
     fileTrain = arg['TrainSet']
     fileTest  = arg['TestSet']
-    k         = arg['K']
     numFrag   = arg['Nodes']
-
     separator = ","
+    
+    if arg['output']:
+        output_file= arg['output']
+    else:
+        output_file = ""
 
-    print """Running KNN with the following parameters:
-    - K: {}
-    - Nodes: {}
-    - Train Set: {}
-    - Test Set: {}\n
-    """.format(k,numFrag,fileTrain,fileTest)
+    print """Running Gaussian Naive Bayes with the following parameters:\n\t- Nodes: {}\n\t- Train Set: {}\n\t- Test Set: {}\n
+          """.format(numFrag,fileTrain,fileTest)
+
+
 
 
     data0 = ReadParallelFile(fileTrain, separator, True, 'FROM_VALUES', [''])
-    data0 = FeatureAssemble(data0,[u'x', u'y'],'feature')
+    data0 = FeatureAssemble(data0, [u'x', u'y'],'Features')
     data1 = ReadParallelFile(fileTest, separator, True, 'FROM_VALUES', [''])
-    data1 = FeatureAssemble(data1,[u'x', u'y'],'feature')
+    data1 = FeatureAssemble(data1, [u'x', u'y'],'Features')
 
-    ClassificationModel = KNN()
     settings = dict()
-    settings['K'] = 1
     settings['label'] = 'label'
-    settings['features'] = 'feature'
-    settings['new_name'] = 'Result_KNN'
-
+    settings['features'] = 'Features'
+    settings['new_name'] = "PredictedByNB"
+    ClassificationModel = GaussianNB()
     model = ClassificationModel.fit(data0, settings, numFrag)
+    settings['model'] = model
 
-    data2 = ClassificationModel.transform(data1,model, settings, numFrag)
+    result = ClassificationModel.transform(data1, settings, numFrag)
 
     if arg['output']:
         output_file= arg['output']
-        tmp = [SaveToFile("%s_%d" % (output_file,d),  data2[d], 'overwrite', True) for d in range(numFrag)]
+        tmp = [SaveToFile("%s_%d" % (output_file,d),  result[d], 'overwrite', True) for d in range(numFrag)]
+
+
+    #accuracy = getAccuracy(test_y, predictions)
+    #print('Accuracy: {0}%').format(accuracy)

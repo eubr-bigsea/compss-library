@@ -8,7 +8,7 @@ __email__  = "lucasmsp@gmail.com"
 
 import sys
 
-from knn import *
+from linearRegression import *
 
 import time
 import numpy as np
@@ -43,6 +43,8 @@ def FeatureAssemble_parallel(df,cols,name):
     df[name] =  df[cols].values.tolist()
     print df
     return df
+
+#---------------------------------------------------------------------
 
 def ReadParallelFile(filename,separator,header,infer,na_values):
     import os, os.path
@@ -87,7 +89,7 @@ def ReadFromFile(filename,separator,header,infer,na_values):
 
     return df
 
-
+#---------------------------------------------------------------------
 
 @task(filename = FILE_OUT)
 def SaveToFile(filename,data,mode,header):
@@ -125,52 +127,79 @@ def SaveToFile(filename,data,mode,header):
 
     return None
 
-
-
-
+#---------------------------------------------------------------------
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='KNN PyCOMPSs')
-    parser.add_argument('-t', '--TrainSet', required=True, help='path to the train file')
-    parser.add_argument('-v', '--TestSet',  required=True, help='path to the test file')
+    parser = argparse.ArgumentParser(description='Linear Regression -  PyCOMPSs')
+    parser.add_argument('-t', '--TrainSet', required=True, help='path to the training file')
+    #parser.add_argument('-v', '--TestSet',  required=True, help='path to the test file')
     parser.add_argument('-f', '--Nodes',    type=int,  default=2, required=False, help='Number of nodes')
-    parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of nearest neighborhood')
+    #parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of nearest neighborhood')
     parser.add_argument('-o', '--output',   required=False, help='path to the output file')
     arg = vars(parser.parse_args())
 
     fileTrain = arg['TrainSet']
-    fileTest  = arg['TestSet']
-    k         = arg['K']
-    numFrag   = arg['Nodes']
+    #fileTest  = arg['TestSet']
 
+    numFrag   = arg['Nodes']
     separator = ","
 
-    print """Running KNN with the following parameters:
-    - K: {}
+
+    print """Running Linear-Regression with the following parameters:
     - Nodes: {}
-    - Train Set: {}
-    - Test Set: {}\n
-    """.format(k,numFrag,fileTrain,fileTest)
+    - Train Set: {}\n
+    """.format(numFrag,fileTrain)
 
+    data = ReadParallelFile(fileTrain, separator, True, 'FROM_VALUES', [''])
 
-    data0 = ReadParallelFile(fileTrain, separator, True, 'FROM_VALUES', [''])
-    data0 = FeatureAssemble(data0,[u'x', u'y'],'feature')
-    data1 = ReadParallelFile(fileTest, separator, True, 'FROM_VALUES', [''])
-    data1 = FeatureAssemble(data1,[u'x', u'y'],'feature')
-
-    ClassificationModel = KNN()
     settings = dict()
-    settings['K'] = 1
-    settings['label'] = 'label'
-    settings['features'] = 'feature'
-    settings['new_name'] = 'Result_KNN'
+    settings['dim'] = '2D'
+    settings['option'] = 'SDG'
 
-    model = ClassificationModel.fit(data0, settings, numFrag)
+    settings['alpha'] = 0.001
+    settings['iters'] = 20
 
-    data2 = ClassificationModel.transform(data1,model, settings, numFrag)
+    ClassificationModel = linearRegression()
+
+    if  settings['dim'] == '2D':
+
+        settings['label'] = 'Y'
+        settings['features'] = 'X'
+
+
+        model = ClassificationModel.fit(data, settings, numFrag)
+
+        settings['new_label'] = 'Ypredicted'
+        settings['model'] = model
+        data = ClassificationModel.transform(data, settings, numFrag)
+
+
+        data = compss_wait_on(data)
+        data = pd.concat([d for d in data],ignore_index=True)
+        from pylab import scatter, show, plot, savefig
+
+        plot(data[settings['features']],data[settings['new_label']])
+        scatter(data[settings['features']],data[settings['label']])
+        savefig('lr-2D.png')
+        print data
+
+    else:
+        data = FeatureAssemble(data,['X','Y'],'feature')
+        settings['label'] = 'Z'
+        settings['features'] = 'feature'
+        # initialize variables for learning rate and iterations
+
+        model = ClassificationModel.fit(data, settings, numFrag)
+        settings['new_label'] = 'Ypredicted'
+        settings['model'] = model
+        #print model
+        data = ClassificationModel.transform(data, settings, numFrag)
+        data = compss_wait_on(data)
+        data = pd.concat([d for d in data],ignore_index=True)
+        print data
 
     if arg['output']:
         output_file= arg['output']
-        tmp = [SaveToFile("%s_%d" % (output_file,d),  data2[d], 'overwrite', True) for d in range(numFrag)]
+        tmp = [SaveToFile("%s_%d" % (output_file,d),  data[d], 'overwrite', True) for d in range(numFrag)]

@@ -8,7 +8,7 @@ __email__  = "lucasmsp@gmail.com"
 
 import sys
 
-from knn import *
+from Kmeans import *
 
 import time
 import numpy as np
@@ -132,45 +132,45 @@ def SaveToFile(filename,data,mode,header):
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='KNN PyCOMPSs')
-    parser.add_argument('-t', '--TrainSet', required=True, help='path to the train file')
-    parser.add_argument('-v', '--TestSet',  required=True, help='path to the test file')
+    parser = argparse.ArgumentParser(description='KMEANS PyCOMPSs')
+    parser.add_argument('-t', '--TrainingSet', required=True, help='path to the train file')
     parser.add_argument('-f', '--Nodes',    type=int,  default=2, required=False, help='Number of nodes')
-    parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of nearest neighborhood')
+    parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of clusters')
     parser.add_argument('-o', '--output',   required=False, help='path to the output file')
     arg = vars(parser.parse_args())
 
-    fileTrain = arg['TrainSet']
-    fileTest  = arg['TestSet']
+    fileTrain = arg['TrainingSet']
     k         = arg['K']
     numFrag   = arg['Nodes']
-
+    output_file = arg['output'] if 'output' in arg else ""
     separator = ","
 
-    print """Running KNN with the following parameters:
+    print """Running Kmeans with the following parameters:
     - K: {}
     - Nodes: {}
-    - Train Set: {}
-    - Test Set: {}\n
-    """.format(k,numFrag,fileTrain,fileTest)
+    - Train Set: {}\n
+    """.format(k,numFrag,fileTrain)
 
 
     data0 = ReadParallelFile(fileTrain, separator, True, 'FROM_VALUES', [''])
     data0 = FeatureAssemble(data0,[u'x', u'y'],'feature')
-    data1 = ReadParallelFile(fileTest, separator, True, 'FROM_VALUES', [''])
-    data1 = FeatureAssemble(data1,[u'x', u'y'],'feature')
 
-    ClassificationModel = KNN()
+
+    cluster_model = Kmeans()
     settings = dict()
-    settings['K'] = 1
-    settings['label'] = 'label'
+    numFrag = 4
+    settings = {
+        'epsilon': 0.05,
+        'k': k,
+        'maxIterations': 5,
+        'initMode': 'kmeans||', #'random'
+        'dim': 2
+        }
     settings['features'] = 'feature'
-    settings['new_name'] = 'Result_KNN'
+    settings['new_name'] = 'Predicted_Cluster'
 
-    model = ClassificationModel.fit(data0, settings, numFrag)
+    result,c = cluster_model.transform(data0, settings, numFrag)
+    print c
 
-    data2 = ClassificationModel.transform(data1,model, settings, numFrag)
-
-    if arg['output']:
-        output_file= arg['output']
-        tmp = [SaveToFile("%s_%d" % (output_file,d),  data2[d], 'overwrite', True) for d in range(numFrag)]
+    if len(output_file)>0:
+        tmp = [SaveToFile("%s_%d" % (output_file,d),  result[d], 'overwrite', True) for d in range(numFrag)]

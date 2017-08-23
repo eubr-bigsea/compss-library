@@ -8,7 +8,7 @@ __email__  = "lucasmsp@gmail.com"
 
 import sys
 
-from knn import *
+from logisticRegression import *
 
 import time
 import numpy as np
@@ -41,8 +41,10 @@ def FeatureAssemble(df, cols, name):
 @task(returns=list)
 def FeatureAssemble_parallel(df,cols,name):
     df[name] =  df[cols].values.tolist()
-    print df
+    #print df
     return df
+
+#---------------------------------------------------------------------
 
 def ReadParallelFile(filename,separator,header,infer,na_values):
     import os, os.path
@@ -87,7 +89,7 @@ def ReadFromFile(filename,separator,header,infer,na_values):
 
     return df
 
-
+#---------------------------------------------------------------------
 
 @task(filename = FILE_OUT)
 def SaveToFile(filename,data,mode,header):
@@ -115,7 +117,7 @@ def SaveToFile(filename,data,mode,header):
     else:
         mode = 'w'
 
-    print data
+    #print data
     if len(data)==0:
         data = pd.DataFrame()
     if header:
@@ -125,52 +127,55 @@ def SaveToFile(filename,data,mode,header):
 
     return None
 
-
-
-
+#---------------------------------------------------------------------
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description='KNN PyCOMPSs')
-    parser.add_argument('-t', '--TrainSet', required=True, help='path to the train file')
-    parser.add_argument('-v', '--TestSet',  required=True, help='path to the test file')
+    parser = argparse.ArgumentParser(description='Logistic Regression -  PyCOMPSs')
+    parser.add_argument('-t', '--TrainSet', required=True, help='path to the training file')
+    #parser.add_argument('-v', '--TestSet',  required=True, help='path to the test file')
     parser.add_argument('-f', '--Nodes',    type=int,  default=2, required=False, help='Number of nodes')
-    parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of nearest neighborhood')
+    #parser.add_argument('-k', '--K',        type=int,  default=1, required=False, help='Number of nearest neighborhood')
     parser.add_argument('-o', '--output',   required=False, help='path to the output file')
     arg = vars(parser.parse_args())
 
     fileTrain = arg['TrainSet']
-    fileTest  = arg['TestSet']
-    k         = arg['K']
-    numFrag   = arg['Nodes']
+    #fileTest  = arg['TestSet']
 
+    numFrag   = arg['Nodes']
     separator = ","
 
-    print """Running KNN with the following parameters:
-    - K: {}
+
+    print """Running Logistic Regression with the following parameters:
     - Nodes: {}
-    - Train Set: {}
-    - Test Set: {}\n
-    """.format(k,numFrag,fileTrain,fileTest)
+    - Train Set: {}\n
+    """.format(numFrag,fileTrain)
 
+    data = ReadParallelFile(fileTrain, separator, True, 'FROM_VALUES', [''])
+    data = FeatureAssemble(data,['Exam1','Exam2'],'feature')
 
-    data0 = ReadParallelFile(fileTrain, separator, True, 'FROM_VALUES', [''])
-    data0 = FeatureAssemble(data0,[u'x', u'y'],'feature')
-    data1 = ReadParallelFile(fileTest, separator, True, 'FROM_VALUES', [''])
-    data1 = FeatureAssemble(data1,[u'x', u'y'],'feature')
-
-    ClassificationModel = KNN()
     settings = dict()
-    settings['K'] = 1
-    settings['label'] = 'label'
+
+    settings['alpha'] = 0.01
+    settings['threshold'] = .003
+    settings['regularization'] = 0
+    settings['iters'] = 10
+    settings['label'] = 'Admitted'
     settings['features'] = 'feature'
-    settings['new_name'] = 'Result_KNN'
 
-    model = ClassificationModel.fit(data0, settings, numFrag)
+    ClassificationModel = logisticRegression()
+    model = ClassificationModel.fit(data, settings, numFrag)
 
-    data2 = ClassificationModel.transform(data1,model, settings, numFrag)
+    settings['new_label'] = 'Y-predicted'
+    settings['model'] = model
+    data = ClassificationModel.transform(data, settings, numFrag)
+
+    data = compss_wait_on(data)
+    data = pd.concat([d for d in data],ignore_index=True)
+    print data.to_string(index=False)
+
 
     if arg['output']:
         output_file= arg['output']
-        tmp = [SaveToFile("%s_%d" % (output_file,d),  data2[d], 'overwrite', True) for d in range(numFrag)]
+        tmp = [SaveToFile("%s_%d" % (output_file,d),  data[d], 'overwrite', True) for d in range(numFrag)]
